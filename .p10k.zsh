@@ -46,55 +46,11 @@
   local cyan='6'
   local white='7'
 
-  function prompt_my_arc() {
-    # 1. Проверяем, доступна ли команда arc
-    (( $+commands[arc] )) || return
-
-    # 2. Быстрый поиск папки .arc вверх по директориям встроенными средствами zsh
-    local d=$PWD
-    local in_arc_repo=0
-    while [[ "$d" != "/" && -n "$d" ]]; do
-      if [[ -e "$d/.arc" ]]; then
-        in_arc_repo=1
-        break
-      fi
-      d="${d:h}"
-    done
-
-    # Если мы не в репозитории - выходим, чтобы не вызывать "arc" впустую
-    (( in_arc_repo )) || return
-
-    # 3. Запускаем 'arc status -sb'
-    local status_line
-    status_line=$(arc status -sb 2>/dev/null | head -n 1)
-
-    # Защита от непредвиденного вывода: используем одинарные кавычки '## '
-    if [[ "$status_line" == '## '* ]]; then
-      
-      # Отрезаем '## ' слева (кавычки спасают от ошибки "bad pattern")
-      local branch="${status_line#'## '}"
-
-      # Отрезаем привязку к удаленной ветке "...arcadia/..." (всё от "..." и до конца справа)
-      branch="${branch%%...*}"
-
-      # Отрезаем "users/имя_пользователя/" спереди, если оно есть
-      branch="${branch#users/$USER/}"
-
-      # Если имя ветки не пустое, печатаем его
-      if [[ -n "$branch" ]]; then
-        p10k segment -t "$branch"
-      fi
-    fi
-  }
-
-  typeset -g POWERLEVEL9K_MY_ARC_FOREGROUND=$grey
-
   # Left prompt segments.
   typeset -g POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(
     context                   # user@host
     dir                       # current directory
     vcs                       # git status
-    my_arc                    # arc branch
     command_execution_time    # previous command duration
     virtualenv                # python virtual environment
     prompt_char               # prompt symbol
